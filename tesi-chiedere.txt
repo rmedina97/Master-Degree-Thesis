@@ -1,0 +1,5 @@
+1)lasciare citazione creatori Liqo linkando la pagina oppure trascriverla con mie parole?
+2)utilizzare // per andare a capo come nel .tex o lasciare tutto unito?
+3)vedere citazioni liqo e kubernetes .tex
+4)la descrizione dell'architettura la progetto nell'introduzione?
+5)approfondire i guasti nel capitolo kubernetes o fare altro capitolo?
