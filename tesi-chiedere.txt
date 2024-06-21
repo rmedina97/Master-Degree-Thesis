@@ -1,5 +1,25 @@
+2 meeting
+1)
+
+
+
+
+1 meeting
+
 1)lasciare citazione creatori Liqo linkando la pagina oppure trascriverla con mie parole?
 2)utilizzare // per andare a capo come nel .tex o lasciare tutto unito?
 3)vedere citazioni liqo e kubernetes .tex
 4)la descrizione dell'architettura la progetto nell'introduzione?
 5)approfondire i guasti nel capitolo kubernetes o fare altro capitolo?
+6)come inziare capitoli? con breve descrizione di cosa si tratterà?
+
+
+url come footnote altro reference generalmente
+prendere fiato-> a capo generalmente o per tematiche
+capitolo stato attuale dopo kubernetes
+google scholar copia titolo cita e bitex
+aggiungi link immagine
+rigira la frase con i sitemi distribuiti
+
+future work pensa a cosa mettere per risolvere
+

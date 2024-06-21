@@ -1,17 +1,22 @@
 \chapter{General architecture domain mesh}
-In questo capitolo si descriverà il percorso che ha portato alla creazione dell'architettura domain mesh, un modello che ci permette di soddisfare pienamente i requisiti di resilienza. La prima parte riguarda la scelta della topologia in base alle esigenze delle tecnologie usate (Percona, Liqo...), la seconda parte riguarderà come si possa sfruttare la topologia scelta per estendere i casi d'uso e nell'ultimo segmento si discuteranno i vantaggi/svantaggi
+In questo capitolo si descriverà il percorso che ha portato alla creazione dell'architettura domain mesh, modello in grado di applicare i paradigmi logici del edge/fog computing ad una architettura multi-cluster garantendo al tempo stesso la possibilità di deployare sistemi high-availability. Inizialmente verranno discusse le scelte strutturali, basate sia sull'ambiente multi-cluster sia sui requisiti delle tecnologie adottate (Percona, Liqo..). Si passerà successivamente alla descrizione di possibili casi d'uso, mostrando la flessibilità delle architetture gerarchiche logiche che si possono implementare. Infine si valuteranno le caratteristiche e le varie limitazioni che questo modello comporta. 
 
 \section{Physical/net architecture}
-spiegazione del perchè si debba usare una specie di full mesh e non approccio gerarchico
+Il modello Domain Mesh (cambiare domain mesh a stella estesa?) si può rappresentare come una topologia stella estesa(CITA figura con spiegazioni come nodi=cluster)
+La rete di controllo e monitoraggio dell'energia elettrica si pùò schematizzare con un grafico appartenente alla topologia ad albero (CITA come aggiungere che i nodi intermedi possono fare operazioni ma hanno limitato spazio perciò non full controllo-> peer-to-peer da scartare?), e tra queste topologie il modello a stella è l'unico che possa essere implementato fisicamente utilizzando la versione standard di Liqo. Difatti essa non permette l'offloading di un namespace già offlodato, per evitare che si possano creare situazioni critiche come offloading circolari. Questo comporta che tutte le topologie gerarchiche a più livelli non possano essere implementate fisicamente senza apportare cambiamenti personalizzati al codice della tecnologia.
+La versione estesa del modello stella, la quale permette collegamenti diretti tra foglie, è necessaria per il corretto funzionamento trasparente multicluster per i sistemi di database distribuito che si basano su servizi headless. Ogni cluster che utilizzi il sistema di database necessiterà infatti di un collegamento diretto con tutti gli altri cluster, creando per il dominio del database una topologia mesh parziale (parziale in quanto i collegamenti non devono necessariamente essere bidirezionali).
 
 \section{Logic hierarchy with labels and affinity}
-come ottenere la gerarchia logica usando labels and  affinità
+Una semplice topologia a stella estesa non ha la flessibilità necessaria per gestire i differenti casi reali in cui si articola una rete di monitoraggio, ordunque si rende necessaria l'introduzione di una strategia per costruire una topologia logica complessa sul modello fisico esistente. Questa strategia si basa sull'utilizzo dei meccanismi di label e affinità nativi di Kubernetes: Ogni cluster sarà identificato da un gruppo di label, le quali specificheranno la posizione di esso nella topologia logica desiderata e che potranno essere utilizzate dallo scheduler per distribuire secondo la logica desiderata il carico di lavoro. Si utilizza il meccanismo di node affinity sia per distinguere i vari cluster, sia per distinguere i vari nodi in un cluster, mentre la pod affinity si utilizza nel caso si voglia inserire qualche condizione di esistenza tra pod nello stesso nodo. In caso di sistemi che utilizzino servizi headless, ogni cluster all'interno di un gruppo dovrà avere un peering con tutti gli altri per permetterne il funzionamento.
+Le prossime sottosezioni tratteranno alcune topologie logiche di base, dalle quali si può partire per costruire la propria desiderata. 
 
-\subsection{Goup indipendent/dependent}
-spiegazione e figure di questo approccio gerarchico
+\subsection{Groups indipendent/domain}
+In questa topologia si suddividono i clusters foglia in gruppi tramite l'assegnazione della label identificativa del gruppo. In questo modo si ottengono diverse aree logiche a cui si possono assegnare diversi carichi di lavoro. Questi gruppi, se non esiste nessun contraddizione logica tra le label identificative, non sono esclusivi, perciò un cluster potrebbe far parte di più gruppi contemporaneamente.
 
-\subsection{level}
-spiegazione e figura di questo approccio gerarchico
+\subsection{Groups dependent/levels}
+Questa tipologia mostra il modo più semplice per creare una gerarchia tra i gruppi. Ogni gruppo, oltre alla label identificativa del proprio dominio, avrà una label inerente al posizionamento dello stesso nella gerarchia logica, supportando perciò nuovi comportamenti come il permettere non solo la scelta su quali gruppi schedulare il carico di lavoro ma anche su quali cluster nel gruppo
 
-\section{Domain mesh}
-spiegazione e vantaggi + figura finale
+\section{Extended Star Analysis}
+Come illustrato precedentemente, la topologia a stella estesa permette di utilizzare sistemi non pensati per l'uso multicluster come i database distribuiti HA, implicando però al contempo una crescita quadratica (CITA metti formula full mesh numero link) del numero di peering necessari tra i cluster nel dominio del database. Il crescere del numero dei peering affligge solamente il tempo necessario per setuppare l'intera archittetura nel momento della creazione, in quanto il consumo di risorse aggiuntive risulta trascurabile (CITA PAPER?). 
+Lo sfruttamento del meccanismo delle label invece permette un'enorme flessibilità nella scelta dell'architettura logica da sovrapporre a quella fisica, con il solo svantaggio di aumentare, esponenzialmente all'aumentare della complessità della topologia logica o linearmente all'aumentare del numero di cluster, il tempo di setup dell'architettura.
+Questo comporta che la topologia a stella estesa è ottimale per sistemi relativamente stabili, permettendo al contempo la possibilità di piccoli cambiamenti logici on the fly oppure di grandi cambiamenti topologici al costo di un certo tempo di setup
