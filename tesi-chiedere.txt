@@ -1,7 +1,13 @@
 2 meeting
-1)
-
-
+1)rileggi per vedere se hai specificato la necessità di avere nodo centrale di controllo
+2)seconda implementazione risolve problema nodi kubernetes
+3)riguarda offloading non si puo gerarchia se hai spiegato bene che non si puo in quanto
+pod finirebbero solo al primo livello nel caso di sistemi che lavorano in un namespace come percona. si,
+esiste la possibilità di piu namespace, ma l'operator dovrebbe essere in più cluster, mentre quella soluzione
+è solo cluster wide
+3.5)controlla ma non credo che operator possa vedere namespace di altri cluster
+4)IMPORTANTE: utilizzando un load balancer, ho bisogno di conoscere il cluster o solo l'indirizzo ip? questo per vedere se mantenere i peering tra stazioni primarie di backup e le secondarie nella seconda implementazione
+5)rifletti su aspetto problema prima implementazione
 
 
 1 meeting
