@@ -1,3 +1,7 @@
+3 meeting
+1)cosa è smart grid? vedi chapter actual prima di 1 sezione
+
+
 2 meeting
 1)rileggi per vedere se hai specificato la necessità di avere nodo centrale di controllo
 2)seconda implementazione risolve problema nodi kubernetes
@@ -8,6 +12,8 @@ esiste la possibilità di piu namespace, ma l'operator dovrebbe essere in più c
 3.5)controlla ma non credo che operator possa vedere namespace di altri cluster
 4)IMPORTANTE: utilizzando un load balancer, ho bisogno di conoscere il cluster o solo l'indirizzo ip? questo per vedere se mantenere i peering tra stazioni primarie di backup e le secondarie nella seconda implementazione
 5)rifletti su aspetto problema prima implementazione
+6)ricordare di citare articolo mandato su slack, scrivilo per prossimo meeting-> quandio citi tesi seba
+7)actual state, descrivere pmu-pdc? -> state of the art-> si aggiungi
 
 
 1 meeting
@@ -25,7 +31,7 @@ prendere fiato-> a capo generalmente o per tematiche
 capitolo stato attuale dopo kubernetes
 google scholar copia titolo cita e bitex
 aggiungi link immagine
-rigira la frase con i sitemi distribuiti
+rigira la frase con i sistemi distribuiti
 
 future work pensa a cosa mettere per risolvere
 
