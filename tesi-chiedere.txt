@@ -1,5 +1,8 @@
 3 meeting
 1)cosa è smart grid? vedi chapter actual prima di 1 sezione
+2)fai tabella due volte per dati
+3)rivedi kubernetes k3s e magari aggiungi immagine
+
 
 
 2 meeting
