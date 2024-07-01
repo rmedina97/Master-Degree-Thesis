@@ -1,10 +1,56 @@
 \chapter{Domain peering evaluation}
+In questo capitolo si mostrano le analisi fatte sull'implementazione Logical domain grouping, scelta poichè ha un grado di resilienza maggiore rispetto all'implementazione multi-level.
+Si noti che alcuni parametri del k3s kubelet sono stati modificati per diminuire il tempo di risposta del cluster in caso di guasto, piu precisamente:
+ (MA VIRTUAL KUBELET PRENDE QUESTI PARAMETRI?)
+1)node-status-update-frequency=10s -> 5s 
+Specifies how often kubelet posts node status to master
+
+2)node-monitor-period=5s ->5s 
+The period for syncing NodeStatus in cloud-node-lifecycle-controller
+
+3)node-monitor-grace-period=40s -> 20s
+Amount of time which we allow running Node to be unresponsive before marking it unhealthy. Must be N times more than kubelet's nodeStatusUpdateFrequency, where N means number of retries allowed for kubelet to post node status.
+
+4)pod-eviction-timeout=300s -> 5s
+Questo parametro specifica quanto tempo deve passare prima che i pod vengano sfrattati da un nodo segnato come "NotReady
+
+
+\section{latency}
+In questa sezione si mostra l'incremento della latenza dovuto all'overhead generato dalla tecnologia Liqo, utilizzando 5 virtual machines (un radice e 4 foglie) presenti in cluster diversi. Questo incremento viene misurato sottraendo la latenza misurata tra le due macchine virtuale, appartenenti a due cluster differenti, alla latenza misurata tra due pod presenti sulle stesse. Questo poichè la latenza tra due macchine virtuali è semplicemente la latenza della rete, mentre la latenza tra due pod è la latenza della rete + overhead di Liqo, in quanto il traffico passa attraverso il tunnel Liqo. Overhead di Kubernetes non entra in gioco in quanto il traffico viene gestito immediatamente da Liqo e non da Kubernetes
+
+Considerando che i dati nella nostra architettura sono spediti utilizzando protocolli TCP, la quale utilizza gli ack, si considera come latenza il round trip time di un pacchetto. I seguenti test sono stati effetuati utilizzando il comand ping, per un totale di circa 1000 iterazioni per test.
+
+La latenza tra due macchine è stata misurata come latenza media tra le 4 latenze (METTERE LATENZE E METTERE FORMULA?)
+0.665 ± 0.662 ms 
+0.689 ± 0.447 ms 
+0.760 ± 0.771 ms 
+0.715 ± 0.468 ms
+ottenendo 0.707 ± 0.595 ms (mettere immagine invece di scrivere dati?)
+
+la latenza tra due pod è stata misurata come latenza media tra le 4 latenze
+1.174 ± 0.670 ms
+1.269 ± 0.724 ms
+1.368 ± 0.903 ms
+1.400 ± 0.829 ms
+ottenendo 1.302 ± 0.691 ms
+
+La latenza architetturale aggiuntiva si ottiene sottraendo la latenza media tra le macchine virtuali dalla latenza media tra i pod.
+
+1.302 ± 0.691 ms - 0.707 ± 0.595 ms = 0.595 ± 0.932 ms
 
 \section{k3s reaction time}
 spiegazione e grafici, comparazione con un normale kubernetes, valori minimi
+Questi test rappresentano il tempo medio->rifallo con parametri uguali ma valutando caduta nodo liqo e caduta nodo senza liqo
 
 \section{Stream reaction time}
-grafici e spiegazione, 
+I seguenti test mostrano il tempo di downtime dello stream di dati creato dalla catena di PDC nei seguenti casi:
+1)guasto interno al pod PDC
+2)guasto/disconnessione del cluster in cui era presente un pod PDC 
+Downtime is calculated from the timestamp of the last data frame of the old stream to the timestamp of the first data frame of the new stream.
 
-\section{latency}
-latenza e grafici, comparazione con latenza senza Liqo
+\subsection{Pod failure}
+Qui si mostra il caso in cui si guasta per problemi interni il pod, portando alla ricreazione dello stesso 
+\subsection{Cluster failure}
+Qui si mostra il caso in cui si perde la connessione con il cluster contenete il pod, perciò c'è il tempo di reaction time di k3s + la creazione di un nuovo pod
+
+

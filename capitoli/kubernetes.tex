@@ -1,9 +1,11 @@
 \chapter{Kubernetes}
-(CITA https://kubernetes.io/docs/concepts/overview/  METTERLA COME CITAZIONE TRA VIRGOLETTE?)
-Kubernetes is a portable, extensible, open source platform for managing containerized workloads and services, that facilitates both declarative configuration and automation
+In this chapter, we will briefly describe Kubernetes technology, which has been used as the foundation for local solutions studied in recent years. This thesis integrates Kubernetes with Liqo technology.
 
+As stated in its official documentation\cite{k0-1}, Kubernetes is a portable, extensible, open source platform for managing containerized workloads and services, that facilitates both declarative configuration and automation.
 
-Kubernetes emerged as a platform designed to automate the management of containerized applications, ensuring periodic checks to maintain alignment between the actual operational state and the defined ideal state through a declarative language. A decade since its release as an open-source project, Kubernetes stands as one of the most extensively utilized platforms worldwide. This project focuses on k3s, a lightweight variant of Kubernetes tailored for operation in resource-constrained environments.
+Kubernetes emerged as a platform designed to automate the management of containerized applications, ensuring periodic checks to maintain alignment between the actual operational state and the defined ideal state through a declarative language.
+
+A decade since its release as an open-source project, Kubernetes stands as one of the most extensively utilized platforms worldwide. This project focuses on k3s, a lightweight variant of Kubernetes tailored for operation in resource-constrained environments.
 
 \section{Basic concepts}
 The foundational principles underlying the architecture of Kubernetes are articulated as follows:
@@ -18,11 +20,32 @@ Every object within Kubernetes is meticulously crafted to adhere to foundational
 Pods are typically instantiated through the implementation of various Kubernetes controllers.
 
 The Deployment controller, commonly used for stateless applications, describes the desired application state while managing scalability through the ReplicaSet. For stateful applications, the StatefulSet controller is normally utilized, managing the pod-to-volume binding and ensuring properties such as unique network IDs that the stateful application required to function properly.
+
 While controllers oversee the lifecycle of pods, pod discovery is entrusted to Services. These Kubernetes objects target all pods matching their selector criteria, facilitating exposure both within and outside the cluster. ClusterIP services expose pods solely within the cluster, whereas NodePort or LoadBalancer services extend pod accessibility externally.
+
 Pods are instantiated on physical or virtual machines known as nodes, which serve either as master or worker nodes based on their role. A master node not only executes various Kubernetes components, as previously discussed, but also hosts the cluster's control plane such as the scheduler, controller manager, and API server. Conversely, a worker node is dedicated solely to executing the workloads of Kubernetes objects.
-The cluster, comprising these nodes, can be structured as a single-master or multi-master configuration. In a multi-master setup, control plane components are replicated across all master nodes, with decisions made via a consensus mechanism based on a quorum(CITA QUALCOSA?). This setup necessitates an odd number of master nodes to prevent split-brain(CITA WIKIPEDIA O RICERCA?) scenarios and reduce decision-making delays. These structural and operational principles form the backbone of Kubernetes architecture, facilitating scalable and efficient container orchestration in diverse computing environments.
+
+The cluster, comprising these nodes, can be structured as a single-master or multi-master configuration. In a multi-master setup, control plane components are replicated across all master nodes, and decisions are made via a consensus mechanism facilitated by the etcd quorum process, which utilizes the Raft algorithm \cite{k1-1}. This setup necessitates an odd number of master nodes to prevent split-brain \cite{k1-2} scenarios and reduce decision-making delays. These structural and operational principles form the backbone of Kubernetes architecture, facilitating scalable and efficient container orchestration in diverse computing environments.
 
 \section{K3s}
-K3s is a lightweight variant of Kubernetes tailored for operation in resource-constrained environments, for example its binary file is less than 100Mb. This is achieved deleting some legacy libraries, using sqlite3 instead of the standard etcd as database manager (this is the default choice, other as the same etcd are available and can be configured). The installation is done by using a simple script, that will handle most of the complicancy of kubernetes environment as setting TLS certificate automatically.
+K3s is a lightweight variant of Kubernetes tailored for operation in resource-constrained environments,  as described in the official documentation\cite{k2-1}:
+\begin{itemize}
+\item Edge
+\item Homelab
+\item Internet of Things (IoT)
+\item Continuous Integration (CI)
+\item Development
+\item Single board computers (ARM)
+\item Air-gapped environments
+\item Embedded K8s
+\item Situations where a PhD in K8s clusterology is infeasible
+\end{itemize}
+K3s efficiently utilizes approximately half the memory resources compared to Kubernetes (K8s) by implementing several optimizations. These include eliminating legacy libraries, opting for lightweight alternatives such as SQLite instead of the standard etcd for database management, and containerd instead of Docker as the container runtime. Additionally, internal mechanisms have been adjusted to reduce memory consumption.
+
+K3s gets its name from the fact that it uses about half the memory, hence it was jokingly named K3s as it consists of 5 letters(K+3+s), which is half of the 10 letters in Kubernetes(K+8+s).
+
+The installation process is streamlined with a simple script that weighs less than 100 MB. Despite its compact size, this script effectively manages many of the complexities typically associated with Kubernetes environments, such as automatically configuring TLS certificates.
+
+This revision clarifies the optimizations made in K3s to reduce memory usage and highlights the streamlined installation process while maintaining readability and technical accuracy.
 
 
