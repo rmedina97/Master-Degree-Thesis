@@ -1,22 +1,50 @@
 \chapter{Possible implementations}
-In questo capitolo saranno discusse le possibili implementazioni della topologia a stella a maglia parziale nel contesto di una rete informatica adibita al monitoraggio dell'energia, composta principalmente dall'Area Control Center, stazioni primarie e stazioni secondarie, ognuna gestita dal proprio cluster kubernetes.
+This chapter will discuss the potential implementations of the partial mesh star topology within the context of a computer network dedicated to energy monitoring. The network primarily consists of the Area Control Center, primary stations, and secondary stations, each managed by its own Kubernetes cluster.
 
-\section{Logical domain grouping}
-L'Area Control Center occupa la posizione centrale della topologia,  stabilendo un peering unidirezionale con offloading con ogni altra entità della topologia, che sia una stazione primaria che una stazione secondaria. Questo permette all'Area Control Center di poter gestire tutti i deployment delle applicazioni, senza doverli delegare ad altri nodi.
-Il resto dei cluster viene suddiviso in gruppi senza collegamenti tra di loro, formati usualmente da una stazione primaria e dalle stazione secondarie a cui fa capo. Questi gruppi rappresentano un dominio logico delle applicazioni con un proprio sistema di database distribuito HA, stabilendo perciò una mesh parziale tra i nodi del gruppo e condividendo lo stesso namespace offlodato dal cluster centrale. 
-Questa architettura permette il massimo grado di resilienza, poichè l'unico punto critico è l'Area Control Center e gli effetti della caduta di questo nodo sono trascurabili se rapportati ai vincoli ambientali:  
-1)In caso di guasto fisico del nodo centrale si perderebbero i deployment, rendendo impossibile il processo di riconciliazione con l'intera rete, ma questo è trascurabile poichè con la caduta della logica del nodo centrale non si potrebbe osservare la rete di default
-2)In caso di completa disconnessione dalla rete, i carichi di lavoro attivi continuerebbero a funzionare ma il processo di riconciliazione delle applicazioni stateful non potrebbe avvenire in quanto dal punto di vista del deployment non è sopravvisuto il numero necessario per mantenere il sistema. Ma anche in questo caso è trascurabile, in quanto ricadremmo nello stesso caso di prima
-Al contrario guasti o disconessioni sui cluster foglia sono del tutto supportati, in quanto dal punto di vista del nodo centrale il loro carico viene semplicemente spostato su altri cluster affini, mentre nei cluster foglia, se sono solo disconnessi, i carichi di lavoro continuano a funzionare con la possibilità di istanziare nuovi applicativi per permettere il funzionamento ad isola fino alla riconciliazione.
-I limiti di questa architettura riguardano la scalabilità, poichè per il funzionamento trasparente dei sistemi di database distribuiti HA ogni cluster ha bisogno della propria CIDR distinta ma ogni peering crea nel cluster centrale un nodo virtuale di rappresentanza, ma nel caso di migliaia di cluster si potrebbe superare il limite consigliato da kubernetes di 5000 nodi (RIFLETTI MEGLIO SU QUESTO ASPETTO)
+\section{Logical domains}
+The Area Control Center occupies the central position in the star topology, establishing unidirectional peering with offloading to every other entity in the topology, whether it is a primary station or a secondary station. This allows the Area Control Center to manage all application deployments without the need to delegate them to other nodes.
 
-\section{Multi-level logical domain grouping}
-Questa implementazione sfrutta due volte la topologia stella a maglia parziale/completa, seguendo la suddivisione delle stazioni in primarie e secondarie, ma potrebbe essere adattata a n suddivisioni (CITA  verifica cio).
-La prima topologia è una stella a maglia parziale utilizzata per connettere l'Area Control Center (cluster centrale) con tutte le stazioni primarie (cluster foglie). Il cluster centrale si occupa del deployment delle applicazioni di alto livello con il loro relativo sistema di database distribuito, offlodando il corrispettivo namespace attraverso i peering al corrispettivo gruppo di stazioni primarie. I gruppi di stazioni primarie son composte da una stazione primaria principale, in cui preferibilmente finirà il carico di lavoro (attraverso l'uso di labels), mentre le altre presenti nel gruppo hanno principalmente funzione di backup in caso di guasto della primaria.
-La primaria di ogni gruppo è anche il cluster centrale della seconda topologia a stella, avendo oltre al collegamento con le stazioni primarie di backup tutti i collegamenti con le stazioni secondarie di sua competenza. Sarà una topologia a stella completa se le stazioni secondarie condivideranno tutte lo stesso dominio di DB, a maglia parziale in caso contrario. 
-La stazione primaria si occupa del deployment delle applicazioni di basso livello con il loro relativo database distribuito HA, offlodando di conseguenza il namespace alle sue stazioni secondarie. Lo stream di dati per il monitoraggio, dovendo passare attraverso due namespace diversi (da quello basso a quello alto) si appoggia a servizi di esposizione come load balancer o ingress, permettendo di raggiungere l'applicativo di alto livello sia che si trovi nella stazione primaria sia che si trovi a causa di un guasto in una delle stazioni primarie di backup.
-(PARTE DA CHIEDERE PER IL LOAD BALANCER ANCHE SE CREDO NON SERVA, DEVO RIVEDERE IL TUTTO)
-Questa architettura permette di abbassare i limiti alla scalabilità della precedente implementazione poichè, oltre ad abbassare il numero di peering gestiti dall'Area Control Center, i CIDR dei cluster dovranno essere distinti solo all'interno delle topologie secondarie che fanno a capo di una stazione primaria, permettendone il riutilizzo nelle diverse tipologie. Questo benefit viene bilanciato dall'abbassamento generale del grado di resilienza, poichè in caso di guasto o disconnessione della stazione primaria si perde il deployment degli applicativi di basso livello, in quanto non è una risorsa riflessa dalla tecnologia Liqo, portando al reset del sistema in caso di riconnessione.
+The remaining clusters are divided into groups, typically consisting of a primary station and its associated secondary stations. These groups represent a logical domain of applications with their own high-availability distributed database system and, therefore, do not have interconnections among them. Within a group, the clusters form a full mesh of unidirectional peerings for the database system's operation, and they share the same offloaded namespace from the Area Control Center. This implementation is depicted in Figure \ref{fig:domains}.
+
+\begin{figure}[ht]\centering
+\includegraphics[scale=0.7]{Pictures/Domain-v3}
+\caption{Logical domains scheme}\label{fig:domains}
+\end{figure}
+
+This architecture allows for the highest degree of resilience, as the only critical point is the Area Control Center, and the effects of a failure or disconnection of this node are negligible when compared to environmental constraints:
+\begin{enumerate}
+\item In the event of a physical failure of the central node, deployments would be lost, making the reconciliation process with the entire network impossible. However, this is negligible because without the central node's logic, the network would not be observable by default.
+\item In the event of a complete disconnection from the network, active workloads would continue to function, but the reconciliation process for stateful applications as the database system will not occur since, by the point of view of the deployments, there would not be enough surviving replicas to maintain the system.Yet, this is also negligible as it falls under the same scenario as before.
+\end{enumerate}
+
+In contrast, failures or disconnections in the leaf clusters are fully supported. From the central node's perspective, their load is simply redistributed to other affiliated clusters. Meanwhile, in the leaf clusters, if they are merely disconnected, the workloads continue to operate with the capability to instantiate new applications, allowing isolated operation until reconciliation is achieved.
+
+This can be observed in Figure \ref{fig:stream}, which illustrates the data stream seen by an instance of PDC lower and its directly superior PDC higher, shortly before and shortly after the disconnection of the cluster hosting the PDC lower and its data sources. PDC lower continues to receive data from the sources, operating in an isolated environment, while PDC higher stops receiving the data stream from the isolated source.
+
+\begin{figure}[ht]\centering
+\includegraphics[scale=0.5]{Pictures/data-stream}
+\caption{Data Stream comparison in case of failure}\label{fig:stream}
+\end{figure}
+
+The limitations of this architecture pertain to scalability, as each cluster requires its own distinct CIDR for the transparent operation of high-availability distributed database systems. Additionally, each peering creates a virtual representative node in the central cluster, limiting the number of possible clusters to 5000, according to the official Kubernetes documentation.
+
+\section{Multi-level logical domains}
+The implementation described in this section leverages a star topology twice, once with a partial mesh version and once with a full version, as shown in Figure \ref{fig:level-imp}. This follows the division of stations into primary and secondary, although it could be adapted to n subdivisions.
+
+The first topology used is a partial mesh star topology used to connect the Area Control Center (central cluster) with all primary stations (leaf clusters). The central cluster handles the deployment of high-level applications along with their respective distributed database systems, offloading the corresponding namespace through peering to the respective group of primary stations.
+
+The groups of primary stations are composed of a main primary station, where workload is preferably directed (using labels), while the others in the group primarily serve as backups in case of failure of the main station. This means that primary stations can be in multiple groups, one where they are primary and others where they function as backups, leveraging the topology seen in Chapter \ref{chap:partial-mesh-star} section \ref{sec:indipendent-groups}.
+
+\begin{figure}[ht]\centering
+\includegraphics[scale=0.7]{Pictures/2level}
+\caption{2 Level logical domains }\label{fig:level-imp}
+\end{figure}
+
+The main primary station of each group also serves as the central cluster in the second star topology, connecting not only to the backup primary stations but also to all secondary stations under its jurisdiction. In our implementation, this will be a full mesh star topology, but a partial mesh could also be used if the secondary stations do not share the same distributed database system.
+
+In this second topology, the main primary station handles the deployment of low-level applications along with their respective high-availability distributed databases, consequently offloading the namespace to its secondary stations. The data stream for monitoring, which passes through two different namespaces (from the low-level to the high-level), relies on external exposure services such as load balancers and ingress, enabling access to the high-level application whether it resides in the primary station or, due to a failure, in one of the backup primary stations.
+
+This architecture enhances scalability limits compared to the previous implementation by reducing the number of peerings managed by the Area Control Center and requiring distinct CIDRs only within the secondary topologies associated with a primary station, allowing for reuse across different types. However, this benefit is balanced by a decrease in overall resilience, as a failure or disconnection of the primary station results in the loss of deployment for low-level applications, which is not a feature supported by the Liqo technology, necessitating system reset upon reconnection.
 
 \section{Final consideration}
-Questa tesi è focalizzata sull'ottenere il massimo grado di resilienza, perciò nei successivi capitoli ci si occuperà di testare la prima implementazione. Si ricorda solo che queste due implementazioni non sono mutualmente esclusive, possono essere implementate contemporaneamente nella stessa rete fisica, nel caso diverse parti della rete abbiano bisogno di diversi gradi di resilienza.
+This thesis focuses on achieving the highest degree of resilience; therefore, the following chapters will focus on testing the first implementation. It is important to note that these two implementations are not mutually exclusive; they can be implemented simultaneously within the same physical network, in cases where different parts of the network require varying degrees of resilience.
