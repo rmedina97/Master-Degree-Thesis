@@ -12,6 +12,10 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{array} % per utilizzare il tipo di colonna 'm'
+\usepackage{tabularx} % per avere colonne di larghezza flessibile
+\usepackage{makecell}
+\usepackage{float}
 
 \usepackage{hyperref}
 \hypersetup{%
@@ -23,7 +27,6 @@
     citecolor={blue},
     urlcolor={blue}
   }
-
 %%%%%%% use PDFLATEX 
 
 \usepackage{lipsum} %to insert random text
@@ -37,7 +40,7 @@
 \usepackage{amsmath}
 
 \usepackage[numbers]{natbib} % for the bibliography
-\bibliographystyle{plainnat}
+\bibliographystyle{unsrtnat}
 
 
 %%%%%%% Local definitions
@@ -68,8 +71,26 @@
 %%%%%%% 
 
 \sommario%summary
-%Here goes the abstrat of your thesis
-La pressione barometrica di Giove viene misurata mediante un metodo originale  messo a punto dai candidati, che si basa sul rilevamento telescopico della pressione.
+In recent times, the introduction of edge/fog computing platforms, which operate on the principle of processing data in locations other than the central node (directly at the production node or at intermediate nodes), has enabled the development of monitoring systems and data consumption with greater speed and precision.
+
+Within the context of the energy network, these platforms can be particularly suitable for the rapid (or automated) deployment of applications and services.
+
+In fact, the geographically distributed compute infrastructure in combination with the transparency of virtualized (or cloud native) platforms opens up unprecedented flexibility for application deployment. 
+
+Furthermore, they facilitate the implementation of new functionalities, for example to ensure the infrastructure's operation in case of disconnection from the backbone network. 
+
+This is achieved by temporarily relocating essential software services locally and subsequently realigning the data with the remote "main" instance once the connection is restored (island mode operation). 
+
+Based on the feasibility of local solutions using the Kubernetes platform in a distributed environment, this thesis presents a potential model to extend their edge/fog computing features to the entire electrical network, employing the innovative open-source project Liqo as the main technology for the management of the distributed cluster architecture.
+
+In developing this model, significant emphasis was placed on ensuring a high degree of resilience. 
+
+This was accomplished through the careful selection of a topology that not only supports the seamless integration of existing distributed database systems within a multi-cluster environment, without requiring any additional modifications, but it also provides the flexibility to distribute workload across any node, unrestricted by fixed architectural constraints but allowing the addition of logical constraints depending on the desired hierarchical architecture.
+
+After examining the topology, the study progressed to creating a possible implementation in the domain of the electrical networks, analysing its behaviour in the event of faults and assessing its scalability. 
+
+Comparing the obtained results with the initial solutions, the architecture adopted in this thesis demonstrates its capability to integrate and extend the local solution’s features to the entire network, without significant increases in latency despite the greater complexity. It also introduces new functionalities such as island mode operation, enabling separate management of the two network parts during disconnection and automatic resources reconciliation once the link is restored.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -101,7 +122,7 @@ I candidati ringraziano vivamente il Granduca di Toscana per i mezzi messi loro 
 
 \input{./capitoli/liqo.tex}
 
-\input{./capitoli/star-extended.tex}
+\input{./capitoli/star-partial-mesh.tex}
 
 \input{./capitoli/possible-implementations.tex}
 
