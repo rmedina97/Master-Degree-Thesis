@@ -4,7 +4,7 @@ In this chapter will be described the process that led to the selection of the p
 Potential use cases will then be described, demonstrating the flexibility of the logical hierarchical architectures that can be implemented. Finally, we will evaluate the characteristics and various limitations that this model entails.
 
 \section{Physical/net architecture}
-The first step was to consider how to abstract a logical model from the initial real-world situation. The electric power control and monitoring network, as shown in the figure \ref{fig:real-net}, can be schematized using both hierarchical tree topology graphs and peer-to-peer topology graphs.
+The first step was to consider how to abstract a logical model from the initial real-world situation. The electric power control and monitoring network, as shown in the Figure~\ref{fig:real-net}, can be schematized using both hierarchical tree topology graphs and peer-to-peer topology graphs.
 
 \begin{figure}[ht]\centering
 \includegraphics[scale=0.6]{Pictures/real-scheme-net}
@@ -38,7 +38,7 @@ These groups are not mutually exclusive, provided there is no logical contradict
 \end{figure}
 
 \subsection{Dependent Groups}
-The leaf clusters of the partial-mesh star model are divided following a logical hierarchy by assigning a label indicating their position within the hierarchy. This approach creates dependent logical areas, as peering is necessary even between clusters belonging to different groups if a distributed database system is used. Figure \ref{fig:group-dep} illustrates the worst-case scenario, where the database domain encompasses all leaf clusters. This topology supports new behaviors, such as allowing not only the selection of which groups to schedule workloads within the same domain.
+The leaf clusters of the partial-mesh star model are divided following a logical hierarchy by assigning a label indicating their position within the hierarchy. This approach creates dependent logical areas, as peering is necessary even between clusters belonging to different groups if a distributed database system is used. Figure~\ref{fig:group-dep} illustrates the worst-case scenario, where the database domain encompasses all leaf clusters. This topology supports new behaviors, such as allowing not only the selection of which groups to schedule workloads within the same domain.
 
 This mechanism allows for the creation of multiple logical hierarchies within the same physical network, each with its own set of labels. Within a given logical hierarchical structure, a cluster can belong to only one group. However, when considering multiple structures, a cluster can belong to different groups.
 
@@ -48,12 +48,14 @@ This mechanism allows for the creation of multiple logical hierarchies within th
 \end{figure}
 
 \section{Partial Mesh Star Analysis}
-As previously illustrated, the partial mesh star topology allows for the use of systems not originally designed for multi-cluster environments, such as distributed HA databases. However, this feature results in a quadratic increase in the number of peerings required between clusters within the database domain. This is because it requires at least a unidirectional peering full mesh. The number of links can be determined using the formula \eqref{eq:eq-link-mesh}:
+As previously illustrated, the partial mesh star topology allows for the use of systems not originally designed for multi-cluster environments, such as distributed HA databases. However, this feature results in a quadratic increase in the number of peerings required between clusters within the database domain. This is because it requires at least a unidirectional peering full mesh. The number of links can be determined using the formula~\eqref{eq:eq-link-mesh}:
 \begin{equation} \label{eq:eq-link-mesh}
 \text{Link} = \frac{N(N-1)}{2}
 \end{equation}
 where N is the number of clusters.
 
-The increase in the number of peerings only affects the time needed to set up the entire architecture during its creation, as the consumption of additional resources is negligible (CITA PAPER Marco?).
+The increase in the number of peerings only affects the time required to set up the entire architecture during its creation, as the consumption of additional resources is negligible, as noted in the article "Computing without Borders: The Way Towards Liquid Computing"~\cite{s2-1}.
 
 The label mechanism offers substantial flexibility in selecting the logical architecture to overlay on the physical infrastructure. However, a drawback is the linear increase in setup time as the number of clusters expands. This characteristic renders the partial mesh star topology ideal for systems with relatively stable physical topologies, facilitating quick adjustments in logical configurations. While significant logical topological changes are supported, they require a corresponding setup time.
+
+It should also be noted that this topology enhances the overall system resilience. Since clusters operate as independent entities, the architecture can support any number of disconnections as long as the central node remains unaffected. Therefore, resilience no longer depends on the number of disconnected clusters (as is the case in a Kubernetes cluster, where at least half plus one of the master nodes must remain healthy) but will instead depend on the constraints of the various applications installed within the architecture.
