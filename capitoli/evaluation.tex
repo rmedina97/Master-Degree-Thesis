@@ -75,7 +75,9 @@ Typically, data, as depicted in Figure~\ref{fig:latency}, traverses about 4 clus
 
 Therefore, the overall latency derives from the sum of Kubernetes + Liqo overhead for each individual cluster, plus the latencies of the networks connecting these clusters.
 
-The networks connecting these clusters typically consist of optical fiber networks for links between primary stations and Area Control Centers, and either fiber optic or radio links for the subnetwork of secondary stations. According to the 2023 Development Plan of e-distribution~\cite{e2-1}, these networks include fiber optic cables illuminated with DWDM technology for connecting primaries to the control center, GPON fiber architectures, or 5G/LTE/4G radio links for connections between secondary and primary stations.
+The networks connecting these clusters typically consist of optical fiber networks for links between primary stations and Area Control Centers, and either fiber optic or radio links for the subnetwork of secondary stations.
+
+According to the 2023 Development Plan of e-distribution~\cite{e2-1}, these networks include fiber optic cables illuminated with DWDM technology for connecting primaries to the control center, GPON fiber architectures, or 5G/LTE/4G radio links for connections between secondary and primary stations.
 
 Let's consider the New AT/MT transformation station "Livigno" (SO) as presented in the 2023 development plan of e-distribution~\cite{e2-2}, as it represents an extreme case regarding the extension of the managed territory, approximately 400 km$^2$ in a rural environment. To estimate the network latency, we consider a fairly central location of the station within the area, hence the maximum distance between it and the secondary substations can be hypothesized to be about 200-300 km. Over this distance, we consider a worst-case scenario of a 4G LTE network based on radio links, with cell towers approximately 10 km apart.
 
@@ -148,7 +150,9 @@ After establishing the network latency, we proceed to calculate the latency betw
   \label{t:4}\vspace{0.5cm}
 \end{minipage}
 
-The increase due to Liqo is measured by subtracting the average latency from Table~\ref{t:3}, which is the sum of network latency + Kubernetes overhead, from the average latency shown in Table~\ref{t:4}, which is the sum of network latency + Kubernetes overhead + Liqo overhead. This calculation yields the result shown in Table~\ref{t:5}. The result shows that the overhead added by Liqo is negligible compared to the total tolerated latency of 1000 ms, as well as compared to one of the worst-case scenarios such as the Livigno case.
+The increase due to Liqo is measured by subtracting the average latency from Table~\ref{t:3}, which is the sum of network latency + Kubernetes overhead, from the average latency shown in Table~\ref{t:4}, which is the sum of network latency + Kubernetes overhead + Liqo overhead. This calculation yields the result shown in Table~\ref{t:5}. 
+
+The result shows that the overhead added by Liqo is negligible compared to the total tolerated latency of 1000 ms, as well as compared to one of the worst-case scenarios such as the Livigno case.
 
 \begin{table}[ht]              
 \centering 
@@ -173,14 +177,14 @@ The test involved two scripts. The first script disabled the network interface o
 The results are depicted in Graph~\ref{graph:k-reaction}. Comparing these results with findings from previous thesis~\cite{e3-1} about the local solution using only Kubernetes, which utilized virtual machines running on different physical machines with slightly different parameter settings, it is evident that the order of magnitude remains consistent. This indicates that the introduction of Liqo technology does not add noteworthy delays compared to the typical delays of a straightforward Kubernetes architecture.
 
 \begin{figure}[ht]\centering
-\includegraphics[scale=0.5]{Pictures/k3s-reaction}
+\includegraphics[scale=0.4]{Pictures/k3s-reaction}
 \caption{Reaction to set virtual node as Not Ready in case of remote cluster disconnession}\label{graph:k-reaction}
 \end{figure}
 
 Moreover, using the same machines but connecting them through a single Kubernetes server and utilizing identical parameter settings, it was observed that the cluster response time in the event of a node failure is slightly higher by a few seconds compared to the time required to detect a node failure representing a Liqo cluster, as depicted in Figure~\ref{graph:k-reaction2}. This difference stems from the Virtual Kubelet's unique management and health check optimization implemented by Liqo, which supersedes traditional kubelet functions for the virtual node management.
 
 \begin{figure}[ht]\centering
-\includegraphics[scale=0.5]{Pictures/k3s-reaction2}
+\includegraphics[scale=0.4]{Pictures/k3s-reaction2}
 \caption{Reaction to set virtual node as Not Ready in case of local node disconnession}\label{graph:k-reaction2}
 \end{figure}
 
@@ -206,7 +210,7 @@ The test results, displayed in Graph~\ref{graph:pod-down}, illustrate the median
 Comparing these results with findings from previous thesis~\cite{e3-1} about the local solution using only Kubernetes,  where the pod recovery time ranged between 17-25 seconds, it is noted that here too, despite slight differences of a few seconds primarily due to environmental variables such as machine power, the order of magnitude remains consistent. 
 
 \begin{figure}[ht]\centering
-\includegraphics[scale=0.5]{Pictures/pdc-pod-down}
+\includegraphics[scale=0.4]{Pictures/pdc-pod-down}
 \caption{Box plot regarding stream downtime from last old data to the first new data in case of pod failure}\label{graph:pod-down}
 \end{figure}
 
@@ -232,19 +236,29 @@ Comparing the results with the values shown in Figure ~\ref{fig:seba}, illustrat
 In this section, we summarize the findings from the various tests conducted to evaluate the performance, reliability, and resilience of the logical domain grouping implementation using Crownlabs and Liqo technology. The following points encapsulate the overall evaluation:
 
 \begin{itemize}
-\item \textbf{Test Environment and Configuration:} The test environment, meticulously configured using Crownlabs and Kubernetes clusters, accurately simulated real-world scenarios. The use of low-capacity virtual machines reflects typical setups in energy monitoring and distribution stations, ensuring relevance and applicability of the results. The fully-meshed star topology with a central root cluster efficiently managed the workload distribution and ensured robustness in case of node or cluster failures. The unidirectional peering for distributed database operations, as implemented through Liqo, facilitated seamless resource sharing and enhanced system reliability.
+\item \textbf{Test Environment and Configuration:} The test environment, meticulously configured using Crownlabs and Kubernetes clusters, accurately simulated real-world scenarios. The use of low-capacity virtual machines reflects typical setups in energy monitoring and distribution stations, ensuring relevance and applicability of the results. 
+
+The fully-meshed star topology with a central root cluster efficiently managed the workload distribution and ensured robustness in case of node or cluster failures. The unidirectional peering for distributed database operations, as implemented through Liqo, facilitated seamless resource sharing and enhanced system reliability.
 
 \item \textbf{Latency Analysis:} The latency tests revealed that the additional overhead introduced by Liqo technology is minimal. The measured average Liqo latency of 0.458 ms is well within acceptable limits for state estimation applications, which tolerate up to 1000 ms. This demonstrates that Liqo can be effectively utilized in distributed systems without significantly impacting communication performance.
 
 \item \textbf{K3s Node Reaction Time:} The reaction time tests indicated that the introduction of Liqo technology did not introduce substantial delays. In fact, the Liqo-managed virtual kubelet demonstrated optimized health checks and node management, resulting in slightly faster response times in certain failure scenarios compared to traditional Kubernetes setups.
 
-\item \textbf{Stream Reaction Time:} The tests simulating pod and cluster failures demonstrated that the downtime for resuming data streams was comparable to, if not slightly better than (in the case of cluster failure), traditional Kubernetes-only environments. This, along with new features such as the temporary independent management of a part of the network (with the continuation of the data stream inside) and the optimization of control capacity by a central entity to manage the rescheduling of the aggregator on other clusters, illustrates the significant advantages of introducing Liqo technology.
+\item \textbf{Stream Reaction Time:} The tests simulating pod and cluster failures demonstrated that the downtime for resuming data streams was comparable to, if not slightly better than (in the case of cluster failure), traditional Kubernetes-only environments. 
 
-\item \textbf{Reliability and Resilience:} Overall, the tests conducted on the logical domain grouping architecture have demonstrated its high resilience against both internal and external cluster failures. Throughout the testing process, there was not a single instance where the system failed to automatically converge to a new stable state after a fault was introduced. Moreover, in scenarios where a cluster became disconnected, the system reliably reintegrated the cluster into the architecture automatically once the connection was restored. This seamless reintegration highlights the robustness and efficiency of the architecture in maintaining operational continuity and stability, underscoring the significant advantages of adopting this approach.
+This, along with new features such as the temporary independent management of a part of the network (with the continuation of the data stream inside) and the optimization of control capacity by a central entity to manage the rescheduling of the aggregator on other clusters, illustrates the significant advantages of introducing Liqo technology.
 
-\item \textbf{Scalability and Flexibility:} The modular setup of clusters and the dynamic nature of Liqo peering allow for a high degree of adaptability, enabling the inclusion or exclusion of clusters without compromising the entire architecture. This is crucial for evolving system requirements and expanding infrastructure without significant overhauls. Scalability remains anchored to the official limits present in the Kubernetes documentation, although it has increased considerably since the set of nodes within a cluster is perceived as a single virtual node.
+\item \textbf{Reliability and Resilience:} Overall, the tests conducted on the logical domain grouping architecture have demonstrated its high resilience against both internal and external cluster failures. Throughout the testing process, there was not a single instance where the system failed to automatically converge to a new stable state after a fault was introduced. Moreover, in scenarios where a cluster became disconnected, the system reliably reintegrated the cluster into the architecture automatically once the connection was restored. 
 
-\item \textbf{Comparison with Traditional Kubernetes:} Throughout the evaluations, it was evident that the logical domain grouping implementation leveraging Liqo provided performance metrics on par with those of traditional Kubernetes architectures. Additionally, the introduction of Liqo offers several benefits, such as isolated operation in case of disconnections, enhanced central control over the entire network, and the ability to manage cluster failures that a Kubernetes-only architecture cannot easily implement.
+This seamless reintegration highlights the robustness and efficiency of the architecture in maintaining operational continuity and stability, underscoring the significant advantages of adopting this approach.
+
+\item \textbf{Scalability and Flexibility:} The modular setup of clusters and the dynamic nature of Liqo peering allow for a high degree of adaptability, enabling the inclusion or exclusion of clusters without compromising the entire architecture. 
+
+This is crucial for evolving system requirements and expanding infrastructure without significant overhauls. Scalability remains anchored to the official limits present in the Kubernetes documentation, although it has increased considerably since the set of nodes within a cluster is perceived as a single virtual node.
+
+\item \textbf{Comparison with Traditional Kubernetes:} Throughout the evaluations, it was evident that the logical domain grouping implementation leveraging Liqo provided performance metrics on par with those of traditional Kubernetes architectures. 
+
+Additionally, the introduction of Liqo offers several benefits, such as isolated operation in case of disconnections, enhanced central control over the entire network, and the ability to manage cluster failures that a Kubernetes-only architecture cannot easily implement.
 \end{itemize}
 
 In conclusion, the analyses confirm that the chosen implementation of logical domain grouping  offers a robust, scalable, and efficient solution for managing distributed systems. The minimal overhead introduced by Liqo, coupled with its advanced features, makes it a valuable addition to Kubernetes-based infrastructures, ensuring high resilience and optimal performance.

@@ -12,7 +12,7 @@ The foundational principles underlying the architecture of Kubernetes are articu
 \begin{enumerate}
 \item Implementation-agnostic APIs: Each Kubernetes object can be implemented differently depending on the version being used, yet the interface used to manage these objects remains consistent across all versions.
 \item Completely declarative specification: Kubernetes facilitates the use of a declarative language instead of the traditional imperative approach, simplifying application management by specifying the desired state directly rather than detailing how to achieve that state from various starting points.
-\item Control loop-oriented approach: Kubernetes employs components known as controllers that cyclically monitor whether the current state aligns with the desired state. If discrepancies are identified, these controllers initiate actions to minimize the gap between the states. This behaviour is shown in Figure~\ref{fig:guido}.
+\item Control loop-oriented approach: Kubernetes employs components known as controllers that cyclically monitor whether the current state aligns with the desired state. If discrepancies are identified, these controllers initiate actions to minimize the gap between the states. This behaviour is shown in Figure~\ref{fig:loop2}.
 \end{enumerate}
 
 \begin{figure}[ht]\centering
