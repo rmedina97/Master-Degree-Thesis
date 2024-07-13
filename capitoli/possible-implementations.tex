@@ -2,16 +2,16 @@
 This chapter will discuss the potential implementations of the partial mesh star topology within the context of a computer network dedicated to energy monitoring. The network primarily consists of the Area Control Center, primary stations, and secondary stations, each managed by its own Kubernetes cluster.
 
 \section{Logical domains}
-The Area Control Center occupies the central position in the star topology, establishing unidirectional peering with offloading to every other entity in the topology, whether it is a primary station or a secondary station. This allows the Area Control Center to manage all application deployments without the need to delegate them to other nodes.
-
-The remaining clusters are divided into groups, typically consisting of a primary station and its associated secondary stations. These groups represent a logical domain of applications with their own high-availability distributed database system and, therefore, do not have interconnections among them. Within a group, the clusters form a full mesh of unidirectional peerings for the database system's operation, and they share the same offloaded namespace from the Area Control Center. 
-
-This implementation is depicted in Figure~\ref{fig:domains}.
+This implementation is depicted in Figure~\ref{fig:domains}, where the Area Control Center occupies the central position in the star topology, establishing unidirectional peering with offloading to every other entity in the topology, whether it is a primary station or a secondary station.
 
 \begin{figure}[ht]\centering
 \includegraphics[scale=0.7]{Pictures/Domain-v3}
-\caption{Logical domains scheme}\label{fig:domains}
+\caption{Logical domains scheme.}\label{fig:domains}
 \end{figure}
+
+This allows the Area Control Center to manage all application deployments without the need to delegate them to other nodes.
+The remaining clusters are divided into groups, typically consisting of a primary station and its associated secondary stations. These groups represent a logical domain of applications with their own high-availability distributed database system and, therefore, do not have interconnections among them. Within a group, the clusters form a full mesh of unidirectional peerings for the database system's operation, and they share the same offloaded namespace from the Area Control Center. 
+
 
 \subsection{Logical domains analysis}
 
@@ -19,7 +19,7 @@ This architecture allows for the highest degree of resilience, as considering ev
 
 \begin{figure}[ht]\centering
 \includegraphics[scale=0.20]{Pictures/failures}
-\caption{Possible failures in logical domains implementation}\label{fig:failures}
+\caption{Possible failures in logical domains implementation.}\label{fig:failures}
 \end{figure}
 
 The cluster representing the Area Control Center is a critical point as it hosts the central logic of the network, but the effects of a failure or disconnection of this node are negligible when compared to environmental constraints:
@@ -39,39 +39,83 @@ The continuation of operations can be observed in Figure~\ref{fig:stream}, which
 
 \begin{figure}[ht]\centering
 \includegraphics[scale=0.5]{Pictures/data-stream}
-\caption{Data Stream comparison in case of failure}\label{fig:stream}
+\caption{Data Stream comparison in case of failure.}\label{fig:stream}
 \end{figure}
+
+Comparing the risks arising from the failure of one component with those that an extended local solution encompassed, as shown in Table ~\ref{t:6}, it can be noted that many have decreased, as there is no longer the possibility of the network remaining unobservable. The risks related to PMU failures have remained the same, as it cannot be rescheduled to another node.
+
+\begin{table}[ht]              
+\centering 
+\begin{tabularx}{\textwidth}{|l|c|X|}
+\hline
+\textbf{Component Failure} & \textbf{Severity} & \textbf{Cause}\\ 
+\hline
+\raisebox{-0.75cm}{Single PMU} & \raisebox{-0.75cm}{Low-> Low} & Generally the number of other PMUs guarantees the observability threshold. \\
+\hline
+\raisebox{-0.75cm}{Multiple PMUs} & \raisebox{-0.75cm}{Low-High-> Low-High} & It depends on whether the number of other PMUs guarantees the observability threshold.\\
+\hline
+\raisebox{-0.75cm}{Single PDC-l} & \raisebox{-0.75cm}{Moderate-High-> Low-Moderate} & The observability of the network is impaired until the PDC is rescheduled onto another node.\\
+\hline
+\raisebox{-0.75cm}{Multiple PDCs-l} & \raisebox{-0.75cm}{Moderate-High-> Low-Moderate} & The observability of the network is impaired until the PDCs are rescheduled onto another nodes. \\
+\hline
+\raisebox{-0.75cm}{Single PDC-h} & \raisebox{-0.75cm}{High-> Moderate}& The observability of the network is impaired until the PDC is rescheduled onto another node. \\
+\hline
+\end{tabularx}
+\caption[Component failures on Logical Domains topology overview.]{Component failures on Logical Domains topology overview.} \label{t:6}  
+\end{table}
 
 The limitations of this architecture pertain to scalability, as each cluster requires its own distinct CIDR for the transparent operation of high-availability distributed database systems. Additionally, each peering creates a virtual representative node in the central cluster, limiting the number of possible clusters to 5000, according to the official Kubernetes documentation.
 
 \section{Multi-level logical domains}
 The implementation described in this section leverages a star topology twice, once with a partial mesh version and once with a full version, as shown in Figure~\ref{fig:level-imp}. This follows the division of stations into primary and secondary, although it could be adapted to n subdivisions.
 
+\begin{figure}[ht]\centering
+\includegraphics[scale=0.7]{Pictures/2level}
+\caption{2 Level logical domains.}\label{fig:level-imp}
+\end{figure}
+
 The first topology used is a partial mesh star topology used to connect the Area Control Center (central cluster) with all primary stations (leaf clusters). The central cluster handles the deployment of high-level applications along with their respective distributed database systems, offloading the corresponding namespace through peering to the respective group of primary stations.
 
 The groups of primary stations are composed of a main primary station, where workload is preferably directed (using labels), while the others in the group primarily serve as backups in case of failure of the main station. This means that primary stations can be in multiple groups, one where they are primary and others where they function as backups, leveraging the topology seen in Chapter~\ref{chap:partial-mesh-star} section~\ref{sec:indipendent-groups}.
-
-\begin{figure}[ht]\centering
-\includegraphics[scale=0.5]{Pictures/2level}
-\caption{2 Level logical domains }\label{fig:level-imp}
-\end{figure}
 
 The main primary station of each group also serves as the central cluster in the second star topology, connecting not only to the backup primary stations but also to all secondary stations under its jurisdiction. In our implementation, this will be a full mesh star topology, but a partial mesh could also be used if the secondary stations do not share the same distributed database system.
 
 In this second topology, the main primary station handles the deployment of low-level applications along with their respective high-availability distributed databases, consequently offloading the namespace to its secondary stations. The data stream for monitoring, which passes through two different namespaces (from the low-level to the high-level), relies on external exposure services such as load balancers and ingress, enabling access to the high-level application whether it resides in the primary station or, due to a failure, in one of the backup primary stations.
 
 
-\subsection{Multi-level logical domains analysis}
+\subsection{Multi-level Logical domains analysis}
 
-This architecture enhances scalability limits compared to the previous implementation by reducing the number of peerings managed by the Area Control Center and requiring distinct CIDRs only within the secondary topologies associated with a primary station, allowing for reuse across different types.
-
-However, this benefit is balanced by a decrease in overall resilience, because in addition to the critical point represented by the Area Control Center, all primary stations that manage a subnetwork of secondary stations also become critical points, as shown in Figure~\ref{fig:failures2}.
-
-This is because a failure or disconnection of the primary station results in the loss of deployment for low-level applications, which is not a feature supported by Liqo technology, thus necessitating a system reset upon reconnection.
+This architecture enhances scalability limits compared to the previous implementation by reducing the number of peerings managed by the Area Control Center,  as shown in Figure~\ref{fig:failures2}, and by requiring distinct CIDRs only within the secondary topologies associated with a primary station, allowing for reuse across different types.
 
 \begin{figure}[ht]\centering
 \includegraphics[scale=0.20]{Pictures/failures2}
-\caption{Possible failures in multi-level logical domains implementation}\label{fig:failures2}
+\caption{Possible failures in multi-level logical domains implementation.}\label{fig:failures2}
 \end{figure}
 
-This thesis focuses on achieving the highest degree of resilience; therefore, the following chapter will focus on testing the first implementation. It is important to note that these two implementations are not mutually exclusive; they can be implemented simultaneously within the same physical network, in cases where different parts of the network require varying degrees of resilience.
+However, this benefit is balanced by a decrease in overall resilience, because in addition to the critical point represented by the Area Control Center, all primary stations that manage a subnetwork of secondary stations also become critical points. This is because a failure or disconnection of the primary station results in the loss of deployment for low-level applications, which is not a feature supported by Liqo technology, thus necessitating a system reset upon reconnection.
+
+Comparing the risks arising from the failure of one component with those that an extended local solution encompassed, as shown in Table ~\ref{t:7}, it can be noted that many have decreased, as there is no longer the possibility of the network remaining unobservable. The risks related to PMU failures have remained the same, as it cannot be rescheduled to another node.
+
+\begin{table}[t]              
+\centering 
+\begin{tabularx}{\textwidth}{|l|c|X|}
+\hline
+\textbf{Component Failure} & \textbf{Severity} & \textbf{Cause}\\ 
+\hline
+\raisebox{-0.75cm}{Single PMU} & \raisebox{-0.75cm}{Low-> Low} & Generally the number of other PMUs guarantees the observability threshold. \\
+\hline
+\raisebox{-0.75cm}{Multiple PMUs} & \raisebox{-0.75cm}{Low-High-> Low-High} & It depends on whether the number of other PMUs guarantees the observability threshold.\\
+\hline
+\raisebox{-0.75cm}{Single PDC-l} & \raisebox{-0.75cm}{Moderate-High-> Low-Moderate} & The observability of the network is impaired until the PDC is rescheduled onto another node.\\
+\hline
+\raisebox{-0.75cm}{Multiple PDCs-l} & \raisebox{-0.75cm}{Moderate-High-> Low-Moderate} & The observability of the network is impaired until the PDCs are rescheduled onto another nodes. \\
+\hline
+\raisebox{-0.75cm}{Single PDC-h} & \raisebox{-0.75cm}{High-> Moderate}& The observability of the network is impaired until the PDC is rescheduled onto another node. \\
+\hline
+\end{tabularx}
+\caption[Component failures on Multi- level Logical Domains topology overview.]{Component failures on Multi-level Logical Domains topology overview.} \label{t:7}  
+\end{table}
+
+This thesis focuses on achieving the highest degree of resilience; therefore, the following chapter will focus on testing the first implementation, as there is no risk of having to redeploy the software components in a subnetwork of secondary substations in the event of a failure of the entire associated primary station cluster.
+
+It is important to note that these two implementations are not mutually exclusive; they can be implemented simultaneously within the same physical network, in cases where different parts of the network require varying degrees of resilience.

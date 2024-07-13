@@ -1,21 +1,17 @@
 \chapter{Conclusion and future work}
-The introduction of Liqo technology in research to implement the paradigms of Edge and Fog computing within the Smart Grid model has not only increased scalability by condensing multiple nodes into a single virtual node but has also enabled the introduction of new functionalities that were previously difficult to implement.
+The introduction of Liqo technology in research to implement the paradigms of Edge and Fog computing within the Smart Grid model has not only increased scalability by condensing multiple nodes into a single virtual node but has also enabled the introduction of new functionalities that were previously difficult to implement. For example, in case of disconnection from the central network, the two parts of the network can operate autonomously, with the capability to deploy new applications until reconnection with the central network (island-mode operation).
 
-For example, in case of disconnection from the central network, the two parts of the network can operate autonomously, with the capability to deploy new applications until reconnection with the central network (island-mode operation).
+The chosen topology in this thesis, humorously called the "winning" topology, for real implementation is the partial mesh star topology. Despite not being a complex architecture, it meets all constraints, stemming from the transparent operation of non-multi-cluster native applications, such as distributed database systems, and from design constraints like seeking the lowest possible power consumption and high resilience. These results were described in the previous chapter, comparing them with the baseline solution values and demonstrating their similarity, without significant latency increases despite increased complexity.
 
-The topology humorously called the "winning" topology for real implementation is the partial mesh star topology. Despite not being a complex architecture, it meets all constraints, stemming from the transparent operation of non-multi-cluster native applications, such as distributed database systems, and from design constraints like seeking the lowest possible power consumption and high resilience.
+Obviously, this solution does not represent a panacea for all issues; for instance, it is still quite limited in terms of scalability. There are various potential research direction, such as:
 
-These results were described in the previous chapter, comparing them with the baseline solution values and demonstrating their similarity, without significant latency increases despite increased complexity.
+\begin{itemize}
+\item Hierarchical physical topology: Explore the possibility of introducing a hierarchical physical layer, as exemplified in the second implementation in Chapter 6 or by modifying the Liqo code to support the offloading of a namespace that has already been offloaded, while maintaining the high level of reliability demonstrated in this thesis.
+\item Updating the software: This study utilized software versions from previous research to compare results and showcase the efficiencies enabled by Liqo technology. openPDC v2.4 currently only supports Kubernetes until v1.24 and Percona until v1.11.0. Upgrading this software would enable the use of recent functionalities, such as the use of the Kubernetes spread operator in the newer versions of Percona, reducing complexity when creating logical topologies with labels and affinity. 
+\item Security: Future research could focus on investigating the security implications of deploying such decentralized systems and the potential damages that various cyber attacks can cause. Furthermore, collaboration with industry partners could facilitate the transition from theoretical research to practical, real-world applications.
+\end{itemize} 
 
-Obviously, this solution does not represent a panacea for all issues; for instance, it is still quite limited in terms of scalability. A potential research direction could be to further explore the possibility of introducing a higher hierarchical level, as demonstrated in the second implementation in Chapter 6, while striving to maintain the high level of reliability demonstrated in this thesis.
-
-This work was conducted using versions utilized in previous research to compare results and demonstrate the efficiency that Liqo technology enables. From this point, implementations on new versions could be developed, which provide access to new functionalities that could optimize the entire structure.
-
-For example, the new versions of k3s and Percona allow the use of the spread operator, which would reduce the complexity of creating the logical hierarchical infrastructure.
-
-Other future researches could focus on investigating the security implications of deploying such decentralized systems. Moreover, collaboration with industry partners could facilitate the transition from theoretical research to practical, real-world applications.
-
-In conclusion, this thesis has demonstrated that integrating Liqo technology into Smart Grid models significantly enhances scalability and functionality. While challenges remain, the groundwork laid here provides a solid foundation for future advancements. The continued evolution and optimization of these technologies promise to drive significant improvements in the efficiency and resilience of critical infrastructures.
+In conclusion, this thesis has demonstrated that integrating Liqo technology into Smart Grid models significantly enhances scalability and functionality comparing to the previous solutions. While challenges remain, the groundwork laid here provides a solid foundation for future advancements. The continued evolution and optimization of these technologies promise to drive significant improvements in the efficiency and resilience of critical infrastructures.
 
 
 
