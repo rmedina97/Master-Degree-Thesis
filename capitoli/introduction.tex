@@ -29,13 +29,11 @@ In Italy, the national electrical grid can be divided into four main areas, as h
 Each area plays a crucial role in the overall operation and management of Italy's electricity network, ensuring efficient and reliable energy supply across the country.
 
 \section{Thesis objectives}
-The Smart Grid model converts the entire traditional distribution network into an intelligent information network. It integrates edge/fog computing principles and introduces new functionalities such as supporting island-mode operation and securely managing various energy sources through centralized automation.
+The Smart Grid model has revolutionize the traditional distribution network by establishing an intelligent information network upon the entire traditional distribution architecture. This new network could integrate edge/fog computing principles and could support new functionalities such as enabling temporary indipendent management of network segments (island mode operation) or securely managing different energy sources through centralized automation.
 
-Current approaches propose using the Kubernetes platform with multi-master clusters to manage individual stations. While these solutions introduce edge/fog computing and local centralized control, they face challenges in scalability, security, and cannot support critical features like island-mode operation across the entire network.
+Current approaches propose using the Kubernetes platform with multi-master clusters to manage individual stations. While these solutions introduce edge/fog computing and local centralized control, they face challenges in scalability, security, and cannot support critical features like temporary indipendent management in case of disconnession (island-mode operationality) if they are translated to manage the entire network. Building manually a control logic between the various cluster could be a solution, but would be very expensive to create, cumbersome to manage and time-consuming to update.
 
-Building on the feasibility of local Kubernetes solutions in distributed environments, this thesis aims to develop a model that extends edge/fog computing capabilities across the entire power grid. 
-
-The innovative open-source project Liqo will be utilized to manage the distributed cluster architecture, enhancing resilience by enabling the system to withstand failures of entire clusters.
+Starting from the current local Kubernetes solutions, this thesis aims to develop a model that extends edge/fog computing capabilities across the entire power grid using a centralized automatic control logic, thanks to the innovative open-source project Liqo. It will be utilized to manage the distributed cluster architecture, enhancing resilience by enabling the system to withstand failures of entire clusters while enabling new features as the insland mode operation. 
 
 \section{Overview}
 This thesis endeavors to create a scalable model for the entire network, building upon successful local solutions.
