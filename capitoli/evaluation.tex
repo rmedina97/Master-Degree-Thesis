@@ -31,7 +31,7 @@ Di seguito vengono specificate le versioni delle piattaforme utilizzate:
 \item \textbf{Database connector:} MYSQL connector v8.2.
 \end{itemize}
 
-It should be noted that certain parameters of the k3s kubelet and manager controller have been adjusted to decrease the cluster response time in case of failure, as detailed in the Table~\ref{t:1}. In contrast, the virtual kubelet instantiated by Liqo has not undergone any changes.
+It should be noted that certain parameters of the k3s kubelet and manager controller have been adjusted to decrease the cluster response time in case of failure, as detailed in the Table~\ref{t:1}, and these values can be considered safe for networks of any size. In contrast, the virtual kubelet instantiated by Liqo has not undergone any changes. 
 
 \begin{table}[ht]              
 \centering 
@@ -45,8 +45,30 @@ It should be noted that certain parameters of the k3s kubelet and manager contro
 \hline
 \raisebox{-0.5cm}{pod-eviction-timeout} & \raisebox{-0.5cm}{300s -> 5s}&This parameter specifies how long Kubernetes waits before evicting pod from a node marked as "NotReady" \\
 \hline
+\raisebox{-0.5cm}{node-monitor-period} & \raisebox{-0.5cm}{5s -> 5s}&The period for syncing NodeStatus in cloud-node-lifecycle-controller. \\
+\hline
 \end{tabularx}
-\caption[Kubelet and Controller Manager list of parameter changes]{Kubelet and Controller Manager list of parameter changes} \label{t:1}  
+\caption[Kubelet and Controller Manager list of parameter safe changes]{Kubelet and Controller Manager list of parameter safe changes} \label{t:1}  
+\end{table}
+
+These parameters can be reduced again to the values shown in Table~\ref{t:8}. However, it is important to note that they are highly dependent on the size of the network. 
+
+\begin{table}[ht]              
+\centering 
+\begin{tabular}{|l|c|}
+\hline 
+\textbf{Option} &\textbf{Value}  \\
+\hline
+node-status-update-frequency & 10s -> 4s \\
+\hline
+node-monitor-grace-period & 40s -> 12s \\
+\hline
+pod-eviction-timeout &300s -> 4s \\
+\hline
+node-monitor-period & 5s -> 4s \\
+\hline
+\end{tabular}
+\caption[Kubelet and Controller Manager list of parameter min changes]{Kubelet and Controller Manager list of parameter min changes} \label{t:7}  
 \end{table}
 
 \subsection{Cluster configuration}
@@ -176,12 +198,15 @@ In the upcoming test, two clusters of virtual machines connected via unidirectio
 
 The test involved two scripts. The first script disabled the network interface on the virtual machine running Liqo in the provider cluster and recorded the timestamp. The second script executed a loop on the consumer cluster, running 'kubectl get node' every 0.4 seconds, and appending the output with a timestamp. (A shorter interval wasn't feasible due to the command execution time.)
 
-The results are depicted in Graph~\ref{graph:k-reaction}. Comparing these results with findings from previous thesis~\cite{e3-1} about the local solution using only Kubernetes, which utilized virtual machines running on different physical machines with slightly different parameter settings, it is evident that the order of magnitude remains consistent. This indicates that the introduction of Liqo technology does not add noteworthy delays compared to the typical delays of a straightforward Kubernetes architecture.
+The results are depicted in Graph~\ref{graph:k-reaction}. 
 
 \begin{figure}[ht]\centering
 \includegraphics[scale=0.5]{Pictures/k3s-reaction}
 \caption{Reaction to set virtual node as Not Ready in case of remote cluster disconnession.}\label{graph:k-reaction}
 \end{figure}
+
+Comparing these results with findings from previous thesis~\cite{e3-1} about the local solution using only Kubernetes, which utilized virtual machines running on different physical machines with slightly different parameter settings, it is evident that the order of magnitude remains consistent. This indicates that the introduction of Liqo technology does not add noteworthy delays compared to the typical delays of a straightforward Kubernetes architecture.
+
 
 Moreover, using the same machines but connecting them through a single Kubernetes server and utilizing identical parameter settings, it was observed that the cluster response time in the event of a node failure is slightly higher by a few seconds compared to the time required to detect a node failure representing a Liqo cluster, as depicted in Figure~\ref{graph:k-reaction2}. This difference stems from the Virtual Kubelet's unique management and health check optimization implemented by Liqo, which supersedes traditional kubelet functions for the virtual node management.
 
